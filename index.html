@@ -1,167 +1,723 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>汉字考试冲刺App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>本周中文听写 · 新学期</title>
 
-<script src="./hanzi-writer.min.js"></script>
+  <!-- 和以前一样：把 hanzi-writer.min.js 放在 index.html 同一文件夹 -->
+  <script src="./hanzi-writer.min.js"></script>
 
-<style>
-body {font-family: system-ui; background:#f3f8ff; margin:0; padding:20px;}
-h1 {text-align:center; color:#ff6b6b;}
-.grid {display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:15px;}
-.card {background:white; border-radius:15px; padding:15px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.1); cursor:pointer;}
-.char {font-size:60px;}
-.modal {display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;}
-.modal-content {background:white; width:90%; max-width:420px; border-radius:20px; padding:20px; text-align:center;}
-#writer {width:300px; height:300px; margin:15px auto; border:2px solid #ddd;}
-button {padding:10px; border:none; border-radius:10px; margin:5px; background:#4ecdc4; color:white;}
-.red{background:#ff6b6b;}
-.orange{background:#ff9f43;}
-.info{font-size:14px;color:#666;margin-top:10px;}
-</style>
+  <style>
+    :root{
+      --bg:#f6f8fc;
+      --card:#ffffff;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --accent:#2563eb;
+      --accent2:#0f766e;
+      --warn:#b45309;
+      --danger:#dc2626;
+      --good:#15803d;
+      --shadow:0 10px 30px rgba(15,23,42,.08);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",
+                  "Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;
+      color:var(--ink);
+      background:linear-gradient(180deg,#eef5ff 0,#f8fafc 220px,var(--bg) 100%);
+    }
+
+    button,input{font:inherit}
+    button{cursor:pointer}
+
+    .app{
+      width:min(1100px,100%);
+      margin:0 auto;
+      padding:20px 16px 48px;
+    }
+
+    .hero{
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(255,255,255,.75);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+    }
+
+    h1{
+      margin:0 0 8px;
+      font-size:clamp(28px,5vw,42px);
+      line-height:1.1;
+    }
+
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:15px;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-top:18px;
+    }
+
+    .stat{
+      background:#f8fafc;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px 14px;
+      text-align:center;
+    }
+
+    .stat b{
+      display:block;
+      font-size:22px;
+      margin-bottom:2px;
+    }
+
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:18px 0;
+    }
+
+    .toolbar button{
+      border:0;
+      border-radius:13px;
+      padding:11px 14px;
+      background:#fff;
+      color:var(--ink);
+      box-shadow:0 3px 10px rgba(15,23,42,.07);
+      border:1px solid var(--line);
+      font-weight:700;
+    }
+
+    .toolbar button.primary{
+      background:var(--accent);
+      color:#fff;
+      border-color:var(--accent);
+    }
+
+    .toolbar button.active{
+      background:#fff7ed;
+      color:var(--warn);
+      border-color:#fed7aa;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+      gap:14px;
+    }
+
+    .card{
+      position:relative;
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:20px;
+      padding:18px 16px;
+      box-shadow:0 6px 20px rgba(15,23,42,.06);
+      transition:.18s ease;
+      min-height:150px;
+    }
+
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 10px 26px rgba(15,23,42,.1);
+    }
+
+    .term{
+      font-size:clamp(34px,5vw,48px);
+      line-height:1.15;
+      font-weight:800;
+      margin-bottom:10px;
+      letter-spacing:.02em;
+      word-break:keep-all;
+    }
+
+    .pinyin{
+      color:var(--accent);
+      font-size:16px;
+      min-height:24px;
+    }
+
+    .tag{
+      display:inline-flex;
+      margin-top:10px;
+      padding:5px 9px;
+      border-radius:999px;
+      background:#f1f5f9;
+      color:#475569;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .wrong-dot{
+      position:absolute;
+      right:12px;
+      top:12px;
+      width:11px;
+      height:11px;
+      border-radius:50%;
+      background:var(--danger);
+      box-shadow:0 0 0 4px #fee2e2;
+    }
+
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      padding:50px 16px;
+      background:#fff;
+      border-radius:20px;
+      border:1px dashed #cbd5e1;
+    }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:50;
+      background:rgba(15,23,42,.62);
+      display:none;
+      align-items:flex-start;
+      justify-content:center;
+      overflow:auto;
+      padding:18px 12px 40px;
+    }
+
+    .modal.open{display:flex}
+
+    .panel{
+      width:min(760px,100%);
+      background:#fff;
+      border-radius:24px;
+      box-shadow:0 28px 80px rgba(0,0,0,.25);
+      padding:18px;
+      margin:auto;
+    }
+
+    .panel-head{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+
+    .big-term{
+      font-size:clamp(42px,9vw,72px);
+      font-weight:900;
+      line-height:1.1;
+      margin:0;
+    }
+
+    .big-pinyin{
+      color:var(--accent);
+      margin-top:6px;
+      font-size:18px;
+    }
+
+    .close{
+      border:0;
+      background:#f1f5f9;
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      font-size:22px;
+    }
+
+    .section{
+      margin-top:18px;
+      padding-top:18px;
+      border-top:1px solid var(--line);
+    }
+
+    .section h3{
+      margin:0 0 12px;
+      font-size:17px;
+    }
+
+    .writer-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:12px;
+    }
+
+    .writer-card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px;
+      background:#fbfdff;
+      text-align:center;
+    }
+
+    .writer-char{
+      font-size:18px;
+      font-weight:800;
+      margin-bottom:6px;
+    }
+
+    .writer-box{
+      margin:0 auto;
+      width:140px;
+      height:140px;
+      background:
+        linear-gradient(to right,transparent 49.5%,#e5e7eb 49.5%,#e5e7eb 50.5%,transparent 50.5%),
+        linear-gradient(to bottom,transparent 49.5%,#e5e7eb 49.5%,#e5e7eb 50.5%,transparent 50.5%);
+      border:1px solid #cbd5e1;
+    }
+
+    .row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .btn{
+      border:0;
+      border-radius:12px;
+      padding:11px 14px;
+      font-weight:800;
+      background:#e2e8f0;
+      color:#1e293b;
+    }
+
+    .btn.blue{background:var(--accent);color:#fff}
+    .btn.green{background:var(--accent2);color:#fff}
+    .btn.red{background:var(--danger);color:#fff}
+    .btn.orange{background:#f59e0b;color:#fff}
+
+    .dictation-box{
+      display:grid;
+      gap:10px;
+    }
+
+    .answer{
+      width:100%;
+      border:2px solid #dbe3ef;
+      border-radius:14px;
+      padding:14px;
+      font-size:24px;
+      outline:none;
+    }
+
+    .answer:focus{border-color:#93c5fd}
+
+    .result{
+      min-height:28px;
+      font-weight:800;
+      font-size:17px;
+    }
+
+    .result.good{color:var(--good)}
+    .result.bad{color:var(--danger)}
+
+    .tip{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+      margin-top:8px;
+    }
+
+    @media (max-width:600px){
+      .app{padding:12px 10px 36px}
+      .hero{padding:18px 15px;border-radius:20px}
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      .card{padding:15px 10px;min-height:135px}
+      .term{font-size:32px}
+      .stats{gap:7px}
+      .stat{padding:9px 7px}
+      .stat b{font-size:19px}
+      .panel{padding:15px;border-radius:20px}
+      .writer-grid{grid-template-columns:1fr 1fr}
+      .writer-box{width:128px;height:128px}
+    }
+
+    @media (max-width:350px){
+      .writer-grid{grid-template-columns:1fr}
+    }
+  </style>
 </head>
 
 <body>
+  <main class="app">
+    <section class="hero">
+      <h1>📚 本周中文听写</h1>
+      <p class="subtitle">新学期 · 按老师给的词语原样练习，不拆词。</p>
 
-<h1>📝 汉字考试冲刺App</h1>
+      <div class="stats">
+        <div class="stat"><b id="totalCount">0</b><span>听写项目</span></div>
+        <div class="stat"><b id="wrongCount">0</b><span>错题</span></div>
+        <div class="stat"><b id="modeText">全部</b><span>当前模式</span></div>
+      </div>
+    </section>
 
-<div style="text-align:center;margin-bottom:15px;">
-<button onclick="toggleWrong()">错题</button>
-<button onclick="randomOne()">随机</button>
-<button onclick="togglePinyin()" class="orange">隐藏拼音</button>
-<button onclick="clearWrong()" class="red">清空错题</button>
-</div>
+    <div class="toolbar">
+      <button class="primary" id="allBtn" onclick="showAll()">📖 全部</button>
+      <button id="wrongBtn" onclick="showWrong()">❌ 只看错题</button>
+      <button onclick="randomTerm()">🎲 随机抽一个</button>
+      <button onclick="togglePinyin()" id="pinyinBtn">🙈 隐藏拼音</button>
+      <button onclick="startDictation()">🔊 随机听写</button>
+      <button onclick="clearWrong()">🧹 清空错题</button>
+    </div>
 
-<div id="list" class="grid"></div>
+    <section id="list" class="grid"></section>
+  </main>
 
-<div id="modal" class="modal">
-<div class="modal-content">
+  <div class="modal" id="modal" onclick="backdropClose(event)">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="big-term" id="modalTerm"></h2>
+          <div class="big-pinyin" id="modalPinyin"></div>
+        </div>
+        <button class="close" onclick="closeModal()" aria-label="关闭">×</button>
+      </div>
 
-<h2 id="char" style="font-size:80px;"></h2>
-<div id="pinyin"></div>
-<div id="word"></div>
-<div id="structure" class="info"></div>
+      <div class="row">
+        <button class="btn green" onclick="speakCurrent()">🔊 读一遍</button>
+        <button class="btn blue" onclick="animateAll()">▶️ 看笔顺</button>
+        <button class="btn orange" onclick="quizAll()">✍️ 描红练习</button>
+      </div>
 
-<div id="writer"></div>
+      <section class="section">
+        <h3>✍️ 笔顺 / 描红</h3>
+        <div id="writerGrid" class="writer-grid"></div>
+        <div class="tip">词语不会被拆成不同题目；这里只是在同一道题里，让每个汉字分别练笔顺。</div>
+      </section>
 
-<button onclick="writer.animateCharacter()">笔顺</button>
-<button onclick="startQuiz()">描红</button>
-<button onclick="speak()">🔊读音</button>
+      <section class="section">
+        <h3>🎧 听写考试</h3>
+        <div class="dictation-box">
+          <div class="row" style="margin-top:0">
+            <button class="btn green" onclick="speakCurrent()">🔊 听题</button>
+            <button class="btn" onclick="revealAnswer()">👀 看答案</button>
+          </div>
+          <input id="answerInput" class="answer" autocomplete="off"
+                 placeholder="听完后，在这里输入完整答案" />
+          <button class="btn blue" onclick="checkAnswer()">提交答案</button>
+          <div id="result" class="result"></div>
+        </div>
+      </section>
 
-<hr>
-
-<h3>听写</h3>
-<button onclick="speak()">🔊再读一遍</button><br>
-<input id="input" placeholder="写这个字" style="padding:10px;margin-top:10px;">
-<br>
-<button onclick="check()">提交</button>
-<div id="result"></div>
-
-<br>
-<button onclick="next()">下一题</button>
-<button onclick="closeModal()" class="red">关闭</button>
-
-</div>
-</div>
+      <div class="row section">
+        <button class="btn" onclick="previousTerm()">← 上一题</button>
+        <button class="btn blue" onclick="nextTerm()">下一题 →</button>
+        <button class="btn red" onclick="markWrong()">加入错题</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-
 const vocab = [
-{char:"悲",pinyin:"bēi",word:"悲伤",structure:"上下结构 心"},
-{char:"惨",pinyin:"cǎn",word:"悲惨",structure:"左右结构 忄"},
-{char:"兽",pinyin:"shòu",word:"野兽",structure:"独体字"},
-{char:"佩",pinyin:"pèi",word:"佩戴",structure:"左右结构 亻"},
-{char:"违",pinyin:"wéi",word:"违反",structure:"半包围 辶"},
-{char:"抗",pinyin:"kàng",word:"反抗",structure:"左右结构 扌"},
-{char:"锁",pinyin:"suǒ",word:"锁住",structure:"左右结构 钅"},
-{char:"既",pinyin:"jì",word:"既然",structure:"左右结构"},
-{char:"愤",pinyin:"fèn",word:"愤怒",structure:"左右结构 忄"},
-{char:"哩",pinyin:"li",word:"哩",structure:"左右结构 口"},
-{char:"级",pinyin:"jí",word:"年级",structure:"左右结构 纟"},
-{char:"链",pinyin:"liàn",word:"项链",structure:"左右结构 钅"},
-{char:"颤",pinyin:"chàn",word:"颤抖",structure:"左右结构 页"},
-{char:"攀",pinyin:"pān",word:"攀爬",structure:"上下结构 手"},
-{char:"猴",pinyin:"hóu",word:"猴子",structure:"左右结构 犭"},
-{char:"鲫",pinyin:"jì",word:"鲫鱼",structure:"左右结构 鱼"},
-{char:"念",pinyin:"niàn",word:"想念",structure:"上下结构 心"},
-{char:"辫",pinyin:"biàn",word:"辫子",structure:"左中右结构"},
-{char:"呵",pinyin:"hē",word:"呵气",structure:"左右结构 口"},
-{char:"庭",pinyin:"tíng",word:"庭院",structure:"半包围 广"},
-{char:"纳",pinyin:"nà",word:"接纳",structure:"左右结构 纟"},
-{char:"仰",pinyin:"yǎng",word:"仰头",structure:"左右结构 亻"},
-{char:"船",pinyin:"chuán",word:"船只",structure:"左右结构 舟"},
-{char:"昧",pinyin:"mèi",word:"愚昧",structure:"左右结构 日"},
-{char:"坠",pinyin:"zhuì",word:"坠落",structure:"上下结构 土"},
-{char:"梦",pinyin:"mèng",word:"做梦",structure:"上下结构"},
-{char:"幻",pinyin:"huàn",word:"幻想",structure:"左右结构 幺"},
-{char:"熟",pinyin:"shú",word:"熟悉",structure:"上下结构 灬"},
-{char:"静",pinyin:"jìng",word:"安静",structure:"左右结构 青"}
+  {term:"亚洲", pinyin:"yà zhōu"},
+  {term:"位于", pinyin:"wèi yú"},
+  {term:"广阔", pinyin:"guǎng kuò"},
+  {term:"面积", pinyin:"miàn jī"},
+  {term:"岛屿", pinyin:"dǎo yǔ"},
+  {term:"蒙古", pinyin:"měng gǔ"},
+  {term:"印度", pinyin:"yìn dù"},
+  {term:"陆地", pinyin:"lù dì"},
+  {term:"太平洋", pinyin:"tài píng yáng"},
+  {term:"隔海相望", pinyin:"gé hǎi xiāng wàng"},
+  {term:"领土", pinyin:"lǐng tǔ"},
+  {term:"守株待兔", pinyin:"shǒu zhū dài tù"},
+  {term:"拔苗助长", pinyin:"bá miáo zhù zhǎng"},
+  {term:"时期", pinyin:"shí qī"},
+  {term:"宋", pinyin:"sòng"},
+  {term:"农夫", pinyin:"nóng fū"},
+  {term:"劳动", pinyin:"láo dòng"},
+  {term:"忽然", pinyin:"hū rán"},
+  {term:"笑话", pinyin:"xiào huà"},
+  {term:"成语", pinyin:"chéng yǔ"},
+  {term:"更", pinyin:"gèng"},
+  {term:"撞到", pinyin:"zhuàng dào"},
+  {term:"省力", pinyin:"shěng lì"}
 ];
 
-let writer, current, wrong={}, hide=false, onlyWrong=false;
+const STORAGE_KEY = "new_semester_dictation_wrong_v1";
+let wrong = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+let showWrongOnly = false;
+let hidePinyin = false;
+let currentIndex = 0;
+let writers = [];
+
+function saveWrong(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(wrong));
+  updateStats();
+}
+
+function updateStats(){
+  document.getElementById("totalCount").textContent = vocab.length;
+  document.getElementById("wrongCount").textContent =
+    vocab.filter(v => wrong[v.term]).length;
+  document.getElementById("modeText").textContent =
+    showWrongOnly ? "错题" : "全部";
+}
 
 function render(){
-const list=document.getElementById("list");
-list.innerHTML="";
-vocab.filter(v=>!onlyWrong||wrong[v.char]).forEach(v=>{
-let div=document.createElement("div");
-div.className="card";
-div.innerHTML=`<div class="char">${v.char}</div>
-<div>${hide?"***":v.pinyin}</div>
-<div>${v.word}</div>`;
-div.onclick=()=>open(v);
-list.appendChild(div);
-});
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  const items = vocab.filter(v => !showWrongOnly || wrong[v.term]);
+
+  if(items.length === 0){
+    list.innerHTML = '<div class="empty" style="grid-column:1/-1">🎉 现在没有错题！可以去“随机听写”继续挑战。</div>';
+    updateStats();
+    return;
+  }
+
+  items.forEach(v => {
+    const idx = vocab.findIndex(x => x.term === v.term);
+    const card = document.createElement("button");
+    card.className = "card";
+    card.style.textAlign = "left";
+    card.onclick = () => openTerm(idx);
+    card.innerHTML = `
+      ${wrong[v.term] ? '<span class="wrong-dot" title="错题"></span>' : ''}
+      <div class="term">${v.term}</div>
+      <div class="pinyin">${hidePinyin ? "••••" : v.pinyin}</div>
+      <span class="tag">${v.term.length === 1 ? "单字" : v.term.length + "字词语"}</span>
+    `;
+    list.appendChild(card);
+  });
+
+  updateStats();
 }
 
-function open(v){
-current=v;
-document.getElementById("modal").style.display="flex";
-document.getElementById("char").innerText=v.char;
-document.getElementById("pinyin").innerText=hide?"":v.pinyin;
-document.getElementById("word").innerText=v.word;
-document.getElementById("structure").innerText=v.structure;
-document.getElementById("writer").innerHTML="";
-writer=HanziWriter.create("writer",v.char,{width:300,height:300});
+function openTerm(index, autoSpeak=false){
+  currentIndex = (index + vocab.length) % vocab.length;
+  const item = vocab[currentIndex];
+
+  document.getElementById("modalTerm").textContent = item.term;
+  document.getElementById("modalPinyin").textContent = hidePinyin ? "" : item.pinyin;
+  document.getElementById("answerInput").value = "";
+  document.getElementById("result").textContent = "";
+  document.getElementById("result").className = "result";
+  document.getElementById("modal").classList.add("open");
+
+  buildWriters(item.term);
+
+  setTimeout(() => {
+    document.getElementById("answerInput").focus();
+    if(autoSpeak) speakCurrent();
+  }, 150);
 }
 
-function startQuiz(){
-writer.quiz({
-onComplete:(s)=>{
-if(s.totalMistakes===0){delete wrong[current.char];alert("✅正确")}
-else{wrong[current.char]=1;alert("❌再练")}
-render();
-}});
+function buildWriters(term){
+  const grid = document.getElementById("writerGrid");
+  grid.innerHTML = "";
+  writers = [];
+
+  [...term].forEach((char, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "writer-card";
+
+    const title = document.createElement("div");
+    title.className = "writer-char";
+    title.textContent = char;
+
+    const box = document.createElement("div");
+    box.className = "writer-box";
+    box.id = "writer_" + i;
+
+    wrap.appendChild(title);
+    wrap.appendChild(box);
+    grid.appendChild(wrap);
+
+    try{
+      const writer = HanziWriter.create(box.id, char, {
+        width: 140,
+        height: 140,
+        padding: 8,
+        showOutline: true,
+        strokeAnimationSpeed: 1,
+        delayBetweenStrokes: 120,
+        strokeColor: "#111827",
+        radicalColor: "#2563eb",
+        outlineColor: "#d1d5db"
+      });
+      writers.push(writer);
+    }catch(err){
+      console.error("HanziWriter error:", char, err);
+    }
+  });
 }
 
-function speak(){
-speechSynthesis.speak(new SpeechSynthesisUtterance(current.char));
+function animateAll(){
+  let delay = 0;
+  writers.forEach(writer => {
+    setTimeout(() => writer.animateCharacter(), delay);
+    delay += 900;
+  });
 }
 
-function check(){
-let val=document.getElementById("input").value;
-if(val===current.char){alert("✅对");delete wrong[current.char]}
-else{alert("❌错");wrong[current.char]=1}
-render();
+function quizAll(){
+  if(!writers.length) return;
+  writers.forEach(writer => {
+    writer.quiz({
+      showHintAfterMisses: 2,
+      highlightOnComplete: true
+    });
+  });
 }
 
-function next(){
-open(vocab[Math.floor(Math.random()*vocab.length)]);
+function speakCurrent(){
+  const text = vocab[currentIndex].term;
+  if(!("speechSynthesis" in window)){
+    alert("这个浏览器暂时不支持语音朗读。");
+    return;
+  }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "zh-CN";
+  u.rate = 0.72;
+  u.pitch = 1;
+  speechSynthesis.speak(u);
+}
+
+function normalize(s){
+  return s.trim().replace(/\s+/g,"");
+}
+
+function checkAnswer(){
+  const item = vocab[currentIndex];
+  const input = normalize(document.getElementById("answerInput").value);
+  const result = document.getElementById("result");
+
+  if(!input){
+    result.textContent = "先输入答案哦。";
+    result.className = "result bad";
+    return;
+  }
+
+  if(input === item.term){
+    result.textContent = "✅ 正确！";
+    result.className = "result good";
+    delete wrong[item.term];
+    saveWrong();
+    render();
+  }else{
+    result.textContent = `❌ 再试一次。正确答案：${item.term}`;
+    result.className = "result bad";
+    wrong[item.term] = true;
+    saveWrong();
+    render();
+  }
+}
+
+function revealAnswer(){
+  const item = vocab[currentIndex];
+  const result = document.getElementById("result");
+  result.textContent = "答案：" + item.term;
+  result.className = "result";
+}
+
+function markWrong(){
+  const item = vocab[currentIndex];
+  wrong[item.term] = true;
+  saveWrong();
+  render();
+  const result = document.getElementById("result");
+  result.textContent = "已加入错题本。";
+  result.className = "result bad";
+}
+
+function nextTerm(){
+  openTerm(currentIndex + 1);
+}
+
+function previousTerm(){
+  openTerm(currentIndex - 1);
+}
+
+function randomTerm(){
+  const pool = showWrongOnly
+    ? vocab.map((v,i)=>({v,i})).filter(x=>wrong[x.v.term])
+    : vocab.map((v,i)=>({v,i}));
+
+  if(pool.length === 0){
+    alert("现在没有错题。");
+    return;
+  }
+
+  const choice = pool[Math.floor(Math.random()*pool.length)];
+  openTerm(choice.i);
+}
+
+function startDictation(){
+  const pool = showWrongOnly
+    ? vocab.map((v,i)=>({v,i})).filter(x=>wrong[x.v.term])
+    : vocab.map((v,i)=>({v,i}));
+
+  if(pool.length === 0){
+    alert("现在没有错题。");
+    return;
+  }
+
+  const choice = pool[Math.floor(Math.random()*pool.length)];
+  openTerm(choice.i, true);
+}
+
+function showAll(){
+  showWrongOnly = false;
+  document.getElementById("allBtn").classList.add("primary");
+  document.getElementById("wrongBtn").classList.remove("active");
+  render();
+}
+
+function showWrong(){
+  showWrongOnly = true;
+  document.getElementById("allBtn").classList.remove("primary");
+  document.getElementById("wrongBtn").classList.add("active");
+  render();
+}
+
+function togglePinyin(){
+  hidePinyin = !hidePinyin;
+  document.getElementById("pinyinBtn").textContent =
+    hidePinyin ? "👀 显示拼音" : "🙈 隐藏拼音";
+  render();
+
+  if(document.getElementById("modal").classList.contains("open")){
+    document.getElementById("modalPinyin").textContent =
+      hidePinyin ? "" : vocab[currentIndex].pinyin;
+  }
+}
+
+function clearWrong(){
+  if(!confirm("确定清空全部错题记录吗？")) return;
+  wrong = {};
+  saveWrong();
+  render();
 }
 
 function closeModal(){
-document.getElementById("modal").style.display="none";
+  document.getElementById("modal").classList.remove("open");
+  if("speechSynthesis" in window) speechSynthesis.cancel();
 }
 
-function toggleWrong(){onlyWrong=!onlyWrong;render();}
-function togglePinyin(){hide=!hide;render();}
-function randomOne(){open(vocab[Math.floor(Math.random()*vocab.length)]);}
-function clearWrong(){wrong={};render();}
+function backdropClose(e){
+  if(e.target.id === "modal") closeModal();
+}
+
+document.getElementById("answerInput").addEventListener("keydown", e => {
+  if(e.key === "Enter") checkAnswer();
+});
+
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape") closeModal();
+});
 
 render();
 </script>
-
 </body>
 </html>
