@@ -360,6 +360,12 @@
       </div>
     </section>
 
+    <div class="toolbar" style="margin-bottom:-8px">
+      <button id="exam1Btn" onclick="selectExam(1)">① 第一次考试</button>
+      <button id="exam2Btn" class="primary" onclick="selectExam(2)">② 第二次考试</button>
+      <button id="allExamBtn" onclick="selectExam(0)">📚 全部复习</button>
+    </div>
+
     <div class="toolbar">
       <button class="primary" id="allBtn" onclick="showAll()">📖 全部</button>
       <button id="wrongBtn" onclick="showWrong()">❌ 只看错题</button>
@@ -417,7 +423,7 @@
   </div>
 
 <script>
-const vocab = [
+const exam1Vocab = [
   {term:"亚洲", pinyin:"yà zhōu"},
   {term:"位于", pinyin:"wèi yú"},
   {term:"广阔", pinyin:"guǎng kuò"},
@@ -443,12 +449,54 @@ const vocab = [
   {term:"省力", pinyin:"shěng lì"}
 ];
 
+const exam2Vocab = [
+  {term:"画蛇添足", pinyin:"huà shé tiān zú"},
+  {term:"楚", pinyin:"chǔ"},
+  {term:"仆人", pinyin:"pú rén"},
+  {term:"壶", pinyin:"hú"},
+  {term:"酒", pinyin:"jiǔ"},
+  {term:"商量", pinyin:"shāng liang"},
+  {term:"其中", pinyin:"qí zhōng"},
+  {term:"夺过", pinyin:"duó guò"},
+  {term:"反而", pinyin:"fǎn ér"},
+  {term:"得意洋洋", pinyin:"dé yì yáng yáng"},
+  {term:"来得及", pinyin:"lái de jí"},
+  {term:"民族", pinyin:"mín zú"},
+  {term:"世界", pinyin:"shì jiè"},
+  {term:"分布", pinyin:"fēn bù"},
+  {term:"平均", pinyin:"píng jūn"},
+  {term:"汉族", pinyin:"hàn zú"},
+  {term:"其他", pinyin:"qí tā"},
+  {term:"地区", pinyin:"dì qū"},
+  {term:"居住", pinyin:"jū zhù"},
+  {term:"免费", pinyin:"miǎn fèi"},
+  {term:"亿", pinyin:"yì"},
+  {term:"寿命", pinyin:"shòu mìng"}
+];
+
+let currentExam = 2;
+let vocab = exam2Vocab;
+
 const STORAGE_KEY = "new_semester_dictation_wrong_v1";
 let wrong = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 let showWrongOnly = false;
 let hidePinyin = false;
 let currentIndex = 0;
 let writers = [];
+
+function selectExam(n){
+  currentExam = n;
+  vocab = n === 1 ? exam1Vocab : n === 2 ? exam2Vocab : [...exam1Vocab, ...exam2Vocab];
+  currentIndex = 0;
+  showWrongOnly = false;
+
+  document.getElementById("exam1Btn").classList.toggle("primary", n === 1);
+  document.getElementById("exam2Btn").classList.toggle("primary", n === 2);
+  document.getElementById("allExamBtn").classList.toggle("primary", n === 0);
+  document.getElementById("allBtn").classList.add("primary");
+  document.getElementById("wrongBtn").classList.remove("active");
+  render();
+}
 
 function saveWrong(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(wrong));
