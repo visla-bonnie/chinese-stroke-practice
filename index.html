@@ -362,7 +362,8 @@
 
     <div class="toolbar" style="margin-bottom:-8px">
       <button id="exam1Btn" onclick="selectExam(1)">① 第一次考试</button>
-      <button id="exam2Btn" class="primary" onclick="selectExam(2)">② 第二次考试</button>
+      <button id="exam2Btn" onclick="selectExam(2)">② 第二次考试</button>
+      <button id="exam3Btn" class="primary" onclick="selectExam(3)">③ 第三次考试</button>
       <button id="allExamBtn" onclick="selectExam(0)">📚 全部复习</button>
     </div>
 
@@ -474,8 +475,31 @@ const exam2Vocab = [
   {term:"寿命", pinyin:"shòu mìng"}
 ];
 
-let currentExam = 2;
-let vocab = exam2Vocab;
+const exam3Vocab = [
+  {term:"狐假虎威", pinyin:"hú jiǎ hǔ wēi"},
+  {term:"高原", pinyin:"gāo yuán"},
+  {term:"凶猛", pinyin:"xiōng měng"},
+  {term:"地势", pinyin:"dì shì"},
+  {term:"假如", pinyin:"jiǎ rú"},
+  {term:"高寒", pinyin:"gāo hán"},
+  {term:"街上", pinyin:"jiē shàng"},
+  {term:"湖泊", pinyin:"hú pō"},
+  {term:"兵器", pinyin:"bīng qì"},
+  {term:"山脉", pinyin:"shān mài"},
+  {term:"自相矛盾", pinyin:"zì xiāng máo dùn"},
+  {term:"海拔", pinyin:"hǎi bá"},
+  {term:"世上", pinyin:"shì shàng"},
+  {term:"肥美", pinyin:"féi měi"},
+  {term:"挡住", pinyin:"dǎng zhù"},
+  {term:"土层", pinyin:"tǔ céng"},
+  {term:"刺", pinyin:"cì"},
+  {term:"平原", pinyin:"píng yuán"},
+  {term:"神气活现", pinyin:"shén qì huó xiàn"},
+  {term:"横断山", pinyin:"héng duàn shān"}
+];
+
+let currentExam = 3;
+let vocab = exam3Vocab;
 
 const STORAGE_KEY = "new_semester_dictation_wrong_v1";
 let wrong = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
@@ -486,12 +510,16 @@ let writers = [];
 
 function selectExam(n){
   currentExam = n;
-  vocab = n === 1 ? exam1Vocab : n === 2 ? exam2Vocab : [...exam1Vocab, ...exam2Vocab];
+  vocab = n === 1 ? exam1Vocab :
+          n === 2 ? exam2Vocab :
+          n === 3 ? exam3Vocab :
+          [...exam1Vocab, ...exam2Vocab, ...exam3Vocab];
   currentIndex = 0;
   showWrongOnly = false;
 
   document.getElementById("exam1Btn").classList.toggle("primary", n === 1);
   document.getElementById("exam2Btn").classList.toggle("primary", n === 2);
+  document.getElementById("exam3Btn").classList.toggle("primary", n === 3);
   document.getElementById("allExamBtn").classList.toggle("primary", n === 0);
   document.getElementById("allBtn").classList.add("primary");
   document.getElementById("wrongBtn").classList.remove("active");
