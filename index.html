@@ -364,7 +364,8 @@
       <button id="exam1Btn" onclick="selectExam(1)">① 第一次考试</button>
       <button id="exam2Btn" onclick="selectExam(2)">② 第二次考试</button>
       <button id="exam3Btn" onclick="selectExam(3)">③ 第三次考试</button>
-      <button id="exam4Btn" class="primary" onclick="selectExam(4)">④ 第四次考试</button>
+      <button id="exam4Btn" onclick="selectExam(4)">④ 第四次考试</button>
+      <button id="exam5Btn" class="primary" onclick="selectExam(5)">⑤ 第五次考试</button>
       <button id="allExamBtn" onclick="selectExam(0)">📚 全部复习</button>
     </div>
 
@@ -522,8 +523,33 @@ const exam4Vocab = [
   {term:"注意", pinyin:"zhù yì"}
 ];
 
-let currentExam = 4;
-let vocab = exam4Vocab;
+const exam5Vocab = [
+  {term:"发源", pinyin:"fā yuán"},
+  {term:"流经", pinyin:"liú jīng"},
+  {term:"文明", pinyin:"wén míng"},
+  {term:"称为", pinyin:"chēng wéi"},
+  {term:"流域", pinyin:"liú yù"},
+  {term:"繁荣", pinyin:"fán róng"},
+  {term:"航运", pinyin:"háng yùn"},
+  {term:"丰富", pinyin:"fēng fù"},
+  {term:"资源", pinyin:"zī yuán"},
+  {term:"名副其实", pinyin:"míng fù qí shí"},
+  {term:"赵", pinyin:"zhào"},
+  {term:"大臣", pinyin:"dà chén"},
+  {term:"苏", pinyin:"sū"},
+  {term:"劝", pinyin:"quàn"},
+  {term:"经过", pinyin:"jīng guò"},
+  {term:"河滩", pinyin:"hé tān"},
+  {term:"晒太阳", pinyin:"shài tài yáng"},
+  {term:"合上", pinyin:"hé shàng"},
+  {term:"夹住", pinyin:"jiā zhù"},
+  {term:"强大", pinyin:"qiáng dà"},
+  {term:"渔翁得利", pinyin:"yú wēng dé lì"},
+  {term:"贝壳", pinyin:"bèi ké"}
+];
+
+let currentExam = 5;
+let vocab = exam5Vocab;
 
 const STORAGE_KEY = "new_semester_dictation_wrong_v1";
 let wrong = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
@@ -538,7 +564,8 @@ function selectExam(n){
           n === 2 ? exam2Vocab :
           n === 3 ? exam3Vocab :
           n === 4 ? exam4Vocab :
-          [...exam1Vocab, ...exam2Vocab, ...exam3Vocab, ...exam4Vocab];
+          n === 5 ? exam5Vocab :
+          [...exam1Vocab, ...exam2Vocab, ...exam3Vocab, ...exam4Vocab, ...exam5Vocab];
   currentIndex = 0;
   showWrongOnly = false;
 
@@ -546,6 +573,7 @@ function selectExam(n){
   document.getElementById("exam2Btn").classList.toggle("primary", n === 2);
   document.getElementById("exam3Btn").classList.toggle("primary", n === 3);
   document.getElementById("exam4Btn").classList.toggle("primary", n === 4);
+  document.getElementById("exam5Btn").classList.toggle("primary", n === 5);
   document.getElementById("allExamBtn").classList.toggle("primary", n === 0);
   document.getElementById("allBtn").classList.add("primary");
   document.getElementById("wrongBtn").classList.remove("active");
